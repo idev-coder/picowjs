@@ -1,0 +1,17 @@
+#include <stdint.h>
+#include "jerryscript.h"
+#include "picowjs_magic_strings.h"
+
+const uint32_t num_magic_string_items = {{magicStrings.length}};
+
+const jerry_char_t *magic_string_items[] = {
+  {{#magicStrings}}
+  (const jerry_char_t *) "{{id}}"{{^last}},{{/last}}
+  {{/magicStrings}}
+};
+
+const jerry_length_t magic_string_lengths[] = {
+  {{#magicStrings}}
+  {{len}}{{^last}},{{/last}}
+  {{/magicStrings}}
+};

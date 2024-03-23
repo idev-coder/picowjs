@@ -1,0 +1,6 @@
+#ifndef __PICOWJS_CONFIG_H
+#define __PICOWJS_CONFIG_H
+
+#define PICOWJS_VERSION "@VER@"
+
+#endif /* __PICOWJS_CONFIG_H */

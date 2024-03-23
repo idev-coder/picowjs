@@ -1,0 +1,17 @@
+# Build folders and files
+build
+.dep
+
+# Node.js modules
+node_modules
+
+# Generated files
+src/gen
+
+# Temp
+.vscode/ipch
+.DS_Store
+
+*~
+\#*
+.vscode/tasks.json

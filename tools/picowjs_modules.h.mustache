@@ -1,0 +1,25 @@
+#ifndef KALUMA_MODULES_H
+#define KALUMA_MODULES_H
+
+#include <stdint.h>
+#include "jerryscript.h"
+
+typedef jerry_value_t (* initialize_fn)();
+
+{{#modules}}
+extern const char module_{{name}}_name[];
+extern const uint8_t module_{{name}}_code[];
+extern const size_t module_{{name}}_size;
+
+{{/modules}}
+typedef struct {
+  const char* name;
+  const void* code;
+  const size_t size;
+  initialize_fn fn;
+} picowjs_builtin_module;
+
+extern const size_t builtin_modules_length;
+extern const picowjs_builtin_module builtin_modules[];
+
+#endif

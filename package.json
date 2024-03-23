@@ -1,0 +1,18 @@
+{
+  "name": "picowjs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "setup:lib": "sh ./setup-lib.sh"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "fs-extra": "^11.2.0",
+    "minimist": "^1.2.8",
+    "mustache": "^4.2.0"
+  }
+}
