@@ -1,17 +1,38 @@
-#ifndef __PICOWJS_PROG_H
-#define __PICOWJS_PROG_H
+/* Copyright (c) 2024 Pico-W-JS
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+#ifndef __PWJS_PROG_H
+#define __PWJS_PROG_H
 
 #include <stdint.h>
 
 #include "board.h"
 #include "flash.h"
 
-void picowjs_prog_clear();
-void picowjs_prog_begin();
-int picowjs_prog_write(uint8_t *buffer, int size);
-int picowjs_prog_end();
-uint32_t picowjs_prog_get_size();
-uint32_t picowjs_prog_max_size();
-uint8_t *picowjs_prog_addr();
+void pwjs_prog_clear();
+void pwjs_prog_begin();
+int pwjs_prog_write(uint8_t *buffer, int size);
+int pwjs_prog_end();
+uint32_t pwjs_prog_get_size();
+uint32_t pwjs_prog_max_size();
+uint8_t *pwjs_prog_addr();
 
-#endif /* __PICOWJS_PROG_H */
+#endif /* __PWJS_PROG_H */

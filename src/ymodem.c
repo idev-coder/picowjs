@@ -43,7 +43,7 @@
 uint8_t packet_data[PACKET_1K_SIZE + PACKET_DATA_INDEX + PACKET_TRAILER_SIZE];
 uint32_t session_done, session_begin;
 
-static picowjs_ymodem_status_t receive_packet(uint8_t *data, uint32_t *length,
+static pwjs_ymodem_status_t receive_packet(uint8_t *data, uint32_t *length,
                                          uint32_t timeout);
 static uint16_t update_crc16(uint16_t crc_in, uint8_t byte);
 static uint16_t calc_crc16(const uint8_t *p_data, uint32_t size);
@@ -91,26 +91,26 @@ static uint16_t calc_crc16(const uint8_t *data, uint32_t size) {
  *     2: abort by sender
  *    >0: packet length
  * @param  timeout
- * @return PICOWJS_YMODEM_OK: normally return
- *         PICOWJS_YMODEM_ABORT: aborted by user
+ * @return PWJS_YMODEM_OK: normally return
+ *         PWJS_YMODEM_ABORT: aborted by user
  */
-static picowjs_ymodem_status_t receive_packet(uint8_t *data, uint32_t *length,
+static pwjs_ymodem_status_t receive_packet(uint8_t *data, uint32_t *length,
                                          uint32_t timeout) {
   uint32_t crc;
   uint32_t packet_size = 0;
-  picowjs_ymodem_status_t status;
+  pwjs_ymodem_status_t status;
   uint8_t ch;
   uint32_t ret;
 
   *length = 0;
-  ret = picowjs_tty_read_sync(&ch, 1, timeout);
+  ret = pwjs_tty_read_sync(&ch, 1, timeout);
   if (ret > 0) {
-    status = PICOWJS_YMODEM_OK;
+    status = PWJS_YMODEM_OK;
   } else {
-    status = PICOWJS_YMODEM_TIMEOUT;
+    status = PWJS_YMODEM_TIMEOUT;
   }
 
-  if (status == PICOWJS_YMODEM_OK) {
+  if (status == PWJS_YMODEM_OK) {
     switch (ch) {
       case SOH:
         packet_size = PACKET_SIZE;
@@ -121,45 +121,45 @@ static picowjs_ymodem_status_t receive_packet(uint8_t *data, uint32_t *length,
       case EOT:
         break;
       case CA:
-        ret = picowjs_tty_read_sync(&ch, 1, timeout);
+        ret = pwjs_tty_read_sync(&ch, 1, timeout);
         if ((ret > 0) && (ch == CA)) {
           packet_size = 2;
         } else {
-          status = PICOWJS_YMODEM_ERROR;
+          status = PWJS_YMODEM_ERROR;
         }
         break;
       case ABORT1:
       case ABORT2:
-        status = PICOWJS_YMODEM_ABORT;
+        status = PWJS_YMODEM_ABORT;
         break;
       default:
-        status = PICOWJS_YMODEM_ERROR;
+        status = PWJS_YMODEM_ERROR;
         break;
     }
     *data = ch;
 
     if (packet_size >= PACKET_SIZE) {
-      ret = picowjs_tty_read_sync(&data[PACKET_NUMBER_INDEX],
+      ret = pwjs_tty_read_sync(&data[PACKET_NUMBER_INDEX],
                              packet_size + PACKET_OVERHEAD_SIZE, timeout);
       if (ret > 0) {
-        status = PICOWJS_YMODEM_OK;
+        status = PWJS_YMODEM_OK;
       } else {
-        status = PICOWJS_YMODEM_TIMEOUT;
+        status = PWJS_YMODEM_TIMEOUT;
       }
 
       /* Simple packet sanity check */
-      if (status == PICOWJS_YMODEM_OK) {
+      if (status == PWJS_YMODEM_OK) {
         if (data[PACKET_NUMBER_INDEX] !=
             ((data[PACKET_CNUMBER_INDEX]) ^ NEGATIVE_BYTE)) {
           packet_size = 0;
-          status = PICOWJS_YMODEM_ERROR;
+          status = PWJS_YMODEM_ERROR;
         } else {
           /* Check packet CRC */
           crc = data[packet_size + PACKET_DATA_INDEX] << 8;
           crc += data[packet_size + PACKET_DATA_INDEX + 1];
           if (calc_crc16(&data[PACKET_DATA_INDEX], packet_size) != crc) {
             packet_size = 0;
-            status = PICOWJS_YMODEM_ERROR;
+            status = PWJS_YMODEM_ERROR;
           }
         }
       } else {
@@ -175,44 +175,44 @@ static picowjs_ymodem_status_t receive_packet(uint8_t *data, uint32_t *length,
  * @brief  Receive a file using the ymodem protocol with CRC16.
  * @param header_cb
  * @param packet_cb
- * @return picowjs_ymodem_status_t
+ * @return pwjs_ymodem_status_t
  */
-picowjs_ymodem_status_t picowjs_ymodem_receive(picowjs_ymodem_header_cb header_cb,
-                                     picowjs_ymodem_packet_cb packet_cb,
-                                     picowjs_ymodem_footer_cb footer_cb) {
+pwjs_ymodem_status_t pwjs_ymodem_receive(pwjs_ymodem_header_cb header_cb,
+                                     pwjs_ymodem_packet_cb packet_cb,
+                                     pwjs_ymodem_footer_cb footer_cb) {
   uint32_t i, packet_length, file_done, errors = 0;
   uint8_t file_name_str[FILE_NAME_LENGTH];
   uint8_t file_size_str[FILE_SIZE_LENGTH];
   uint32_t file_size;
   uint8_t *file_ptr;
   uint32_t packets_received;
-  picowjs_ymodem_status_t result = PICOWJS_YMODEM_OK;
+  pwjs_ymodem_status_t result = PWJS_YMODEM_OK;
 
   session_done = 0;
   session_begin = 0;
 
-  while ((session_done == 0) && (result == PICOWJS_YMODEM_OK)) {
+  while ((session_done == 0) && (result == PWJS_YMODEM_OK)) {
     packets_received = 0;
     file_done = 0;
-    while ((file_done == 0) && (result == PICOWJS_YMODEM_OK)) {
-      picowjs_ymodem_status_t stat =
+    while ((file_done == 0) && (result == PWJS_YMODEM_OK)) {
+      pwjs_ymodem_status_t stat =
           receive_packet(packet_data, &packet_length, DOWNLOAD_TIMEOUT);
       switch (stat) {
-        case PICOWJS_YMODEM_OK:
+        case PWJS_YMODEM_OK:
           errors = 0;
           switch (packet_length) {
             case 2: /* Abort by sender */
-              picowjs_tty_putc(ACK);
-              result = PICOWJS_YMODEM_ABORT;
+              pwjs_tty_putc(ACK);
+              result = PWJS_YMODEM_ABORT;
               break;
             case 0: /* End of transmission */
-              picowjs_tty_putc(ACK);
+              pwjs_tty_putc(ACK);
               file_done = 1;
               break;
             default: /* Normal packet */
               if (packet_data[PACKET_NUMBER_INDEX] !=
                   (uint8_t)(packets_received & 0x0FF)) {
-                picowjs_tty_putc(NAK);
+                pwjs_tty_putc(NAK);
               } else {
                 if (packets_received == 0) {
                   /* File name packet */
@@ -238,17 +238,17 @@ picowjs_ymodem_status_t picowjs_ymodem_receive(picowjs_ymodem_header_cb header_c
                     if (header_cb) {
                       int ret = header_cb(file_name_str, file_size);
                       if (ret < 0) {
-                        picowjs_tty_putc(CA);
-                        picowjs_tty_putc(CA);
-                        result = PICOWJS_YMODEM_LIMIT;
+                        pwjs_tty_putc(CA);
+                        pwjs_tty_putc(CA);
+                        result = PWJS_YMODEM_LIMIT;
                       } else {
-                        picowjs_tty_putc(ACK);
-                        picowjs_tty_putc(CRC16);
+                        pwjs_tty_putc(ACK);
+                        pwjs_tty_putc(CRC16);
                       }
                     }
 
                   } else { /* File header packet is empty, end session */
-                    picowjs_tty_putc(ACK);
+                    pwjs_tty_putc(ACK);
                     file_done = 1;
                     session_done = 1;
 
@@ -267,11 +267,11 @@ picowjs_ymodem_status_t picowjs_ymodem_receive(picowjs_ymodem_header_cb header_c
                     // An error occurred while processing the packet
                     if (ret < 0) {
                       // End session
-                      picowjs_tty_putc(CA);
-                      picowjs_tty_putc(CA);
-                      result = PICOWJS_YMODEM_DATA;
+                      pwjs_tty_putc(CA);
+                      pwjs_tty_putc(CA);
+                      result = PWJS_YMODEM_DATA;
                     } else {
-                      picowjs_tty_putc(ACK);
+                      pwjs_tty_putc(ACK);
                     }
                   }
                 }
@@ -281,10 +281,10 @@ picowjs_ymodem_status_t picowjs_ymodem_receive(picowjs_ymodem_header_cb header_c
               break;
           }
           break;
-        case PICOWJS_YMODEM_ABORT: /* Abort actually */
-          picowjs_tty_putc(CA);
-          picowjs_tty_putc(CA);
-          result = PICOWJS_YMODEM_ABORT;
+        case PWJS_YMODEM_ABORT: /* Abort actually */
+          pwjs_tty_putc(CA);
+          pwjs_tty_putc(CA);
+          result = PWJS_YMODEM_ABORT;
           break;
         default:
           if (session_begin > 0) {
@@ -292,10 +292,10 @@ picowjs_ymodem_status_t picowjs_ymodem_receive(picowjs_ymodem_header_cb header_c
           }
           if (errors > MAX_ERRORS) {
             /* Abort communication */
-            picowjs_tty_putc(CA);
-            picowjs_tty_putc(CA);
+            pwjs_tty_putc(CA);
+            pwjs_tty_putc(CA);
           } else {
-            picowjs_tty_putc(CRC16); /* Ask for a packet */
+            pwjs_tty_putc(CRC16); /* Ask for a packet */
           }
           break;
       }

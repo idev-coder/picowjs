@@ -39,14 +39,14 @@ set(JERRY_ARGS
   --cpointer-32bit=ON)
 
 set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
-set(KALUMA_GENERATED_C
+set(PICOWJS_GENERATED_C
   ${SRC_DIR}/gen/picowjs_modules.c
   ${SRC_DIR}/gen/picowjs_magic_strings.c)
-set(KALUMA_GENERATED_H
+set(PICOWJS_GENERATED_H
   ${SRC_DIR}/gen/picowjs_modules.h
   ${SRC_DIR}/gen/picowjs_magic_strings.h)
-file(GLOB_RECURSE KALUMA_MODULE_SRC ${SRC_DIR}/modules/*)
-set(KALUMA_GENERATED ${KALUMA_GENERATED_C} ${KALUMA_GENERATED_H})
+file(GLOB_RECURSE PICOWJS_MODULE_SRC ${SRC_DIR}/modules/*)
+set(PICOWJS_GENERATED ${PICOWJS_GENERATED_C} ${PICOWJS_GENERATED_H})
 
 string (REPLACE ";" " " MODULE_LIST "${MODULES}")
 
@@ -55,18 +55,18 @@ set(JERRY_LIBS
   ${JERRY_ROOT}/build/lib/libjerry-ext.a)
 
 add_custom_command(OUTPUT ${JERRY_LIBS}
-  DEPENDS ${KALUMA_GENERATED_C} ${KALUMA_MODULE_SRC}
+  DEPENDS ${PICOWJS_GENERATED_C} ${PICOWJS_MODULE_SRC}
   WORKING_DIRECTORY ${JERRY_ROOT}
   COMMAND python tools/build.py --clean ${JERRY_ARGS})
 
-add_custom_command(OUTPUT ${KALUMA_GENERATED_C}
+add_custom_command(OUTPUT ${PICOWJS_GENERATED_C}
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
   COMMAND python ${JERRY_ROOT}/tools/build.py --clean --jerry-cmdline-snapshot=ON --snapshot-save=ON --snapshot-exec=ON --profile=es.next #es2015-subset
   COMMAND node tools/js2c.js --modules=${MODULE_LIST} --target=${TARGET} --board=${BOARD}
   COMMAND rm -rf lib/jerryscript/build)
 
-set(KALUMA_INC ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/include/port ${SRC_DIR}/gen ${SRC_DIR}/modules)
-include_directories(${KALUMA_INC} ${JERRY_INC})
+set(PICOWJS_INC ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/include/port ${SRC_DIR}/gen ${SRC_DIR}/modules)
+include_directories(${PICOWJS_INC} ${JERRY_INC})
 
 list(APPEND SOURCES
   ${SRC_DIR}/err.c
@@ -81,7 +81,7 @@ list(APPEND SOURCES
   ${SRC_DIR}/prog.c
   ${SRC_DIR}/ymodem.c
   ${SRC_DIR}/ringbuffer.c
-  ${KALUMA_GENERATED_C})
+  ${PICOWJS_GENERATED_C})
 
 FOREACH(MOD ${MODULES})
   if(EXISTS "${SRC_DIR}/modules/${MOD}/module.cmake")

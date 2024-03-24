@@ -1,7 +1,7 @@
 // Generate magic strings
 
-const fs = require('fs-extra')
-const path = require('path')
+const fs = require('node:fs');
+const path = require('node:path');
 const mustache = require('mustache')
 
 var includePath = path.join(__dirname, '../include')
@@ -48,7 +48,7 @@ function generateMagicStrings(modules) {
   var rendered_c = mustache.render(template_c, { magicStrings: magicStringItems })
 
   var genPath = path.join(__dirname, '../src/gen')
-  fs.ensureDirSync(genPath)
+  fs.mkdirSync(genPath)
   fs.writeFileSync(path.join(genPath, 'picowjs_magic_strings.h'), rendered_h, 'utf8')
   fs.writeFileSync(path.join(genPath, 'picowjs_magic_strings.c'), rendered_c, 'utf8')
 }

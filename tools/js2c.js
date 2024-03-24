@@ -1,8 +1,8 @@
 // Generate c source from js files
 
-const fs = require("fs-extra");
-const path = require("path");
-const childProcess = require("child_process");
+const fs = require('node:fs');
+const path = require('node:path');
+const childProcess = require('node:child_process');
 const mustache = require("mustache");
 const minimist = require("minimist");
 const magicStrings = require("./magic_strings");
@@ -147,7 +147,7 @@ function generateSources() {
   var rendered_h = mustache.render(template_h, view);
   var rendered_c = mustache.render(template_c, view);
   var genPath = path.join(__dirname, "../src/gen");
-  fs.ensureDirSync(genPath);
+  fs.mkdirSync(genPath);
   fs.writeFileSync(path.join(genPath, "picowjs_modules.h"), rendered_h, "utf8");
   fs.writeFileSync(path.join(genPath, "picowjs_modules.c"), rendered_c, "utf8");
 }

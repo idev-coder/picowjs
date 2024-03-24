@@ -1,5 +1,26 @@
-#ifndef __PICOWJS_TTY_H
-#define __PICOWJS_TTY_H
+/* Copyright (c) 2024 Pico-W-JS
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+#ifndef __PWJS_TTY_H
+#define __PWJS_TTY_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -8,14 +29,14 @@
 /**
  * Initialize TTY
  */
-void picowjs_tty_init();
+void pwjs_tty_init();
 
 /**
  * Check the number of bytes available to read.
  *
  * @return the number of bytes in TTY read buffer.
  */
-uint32_t picowjs_tty_available();
+uint32_t pwjs_tty_available();
 
 /**
  * Read bytes from TTY read buffer.
@@ -24,7 +45,7 @@ uint32_t picowjs_tty_available();
  * @param len
  * @return the number of bytes read
  */
-uint32_t picowjs_tty_read(uint8_t *buf, size_t len);
+uint32_t pwjs_tty_read(uint8_t *buf, size_t len);
 
 /**
  * Read bytes synchronously from TTY read buffer.
@@ -34,21 +55,21 @@ uint32_t picowjs_tty_read(uint8_t *buf, size_t len);
  * @param timeout
  * @return the number of bytes read
  */
-uint32_t picowjs_tty_read_sync(uint8_t *buf, size_t len, uint32_t timeout);
+uint32_t pwjs_tty_read_sync(uint8_t *buf, size_t len, uint32_t timeout);
 
 /**
  * Read a char from TTY
  *
  * @return char
  */
-uint8_t picowjs_tty_getc();
+uint8_t pwjs_tty_getc();
 
 /**
  * Write a char to TTY
  *
  * @param ch a character to write
  */
-void picowjs_tty_putc(char ch);
+void pwjs_tty_putc(char ch);
 
 /**
  * Write a formatted string to TTY
@@ -56,6 +77,6 @@ void picowjs_tty_putc(char ch);
  * @param fmt a string format
  * @param ... arguments for the format
  */
-void picowjs_tty_printf(const char *fmt, ...);
+void pwjs_tty_printf(const char *fmt, ...);
 
-#endif /* __PICOWJS_TTY_H */
+#endif /* __PWJS_TTY_H */

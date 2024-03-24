@@ -1,38 +1,59 @@
-#ifndef __PICOWJS_SPI_H
-#define __PICOWJS_SPI_H
+/* Copyright (c) 2024 Pico-W-JS
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+#ifndef __PWJS_SPI_H
+#define __PWJS_SPI_H
 
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
 typedef enum {
-  PICOWJS_SPI_MODE_0,  // (CPOL=0/CPHA=0)
-  PICOWJS_SPI_MODE_1,  // (CPOL=0/CPHA=1)
-  PICOWJS_SPI_MODE_2,  // (CPOL=1/CPHA=0)
-  PICOWJS_SPI_MODE_3   // (CPOL=1/CPHA=1)
-} picowjs_spi_mode_t;
+  PWJS_SPI_MODE_0,  // (CPOL=0/CPHA=0)
+  PWJS_SPI_MODE_1,  // (CPOL=0/CPHA=1)
+  PWJS_SPI_MODE_2,  // (CPOL=1/CPHA=0)
+  PWJS_SPI_MODE_3   // (CPOL=1/CPHA=1)
+} pwjs_spi_mode_t;
 
-typedef enum { PICOWJS_SPI_BITORDER_MSB, PICOWJS_SPI_BITORDER_LSB } picowjs_spi_bitorder_t;
+typedef enum { PWJS_SPI_BITORDER_MSB, PWJS_SPI_BITORDER_LSB } pwjs_spi_bitorder_t;
 
 typedef struct {
   int8_t miso;
   int8_t mosi;
   int8_t sck;
-} picowjs_spi_pins_t;
+} pwjs_spi_pins_t;
 
 /**
  * Return default UART pins. -1 means there is no default value on that pin.
  */
-picowjs_spi_pins_t picowjs_spi_get_default_pins(uint8_t bus);
+pwjs_spi_pins_t pwjs_spi_get_default_pins(uint8_t bus);
 /**
  * Initialize all SPI when system started
  */
-void picowjs_spi_init();
+void pwjs_spi_init();
 
 /**
  * Cleanup all SPI when system cleanup
  */
-void picowjs_spi_cleanup();
+void pwjs_spi_cleanup();
 
 /**
  * Setup SPI bus as the master device
@@ -46,8 +67,8 @@ void picowjs_spi_cleanup();
  * @param miso_pullup true when MISO internal pull up is needed.
  * @return Returns 0 on success or minus value (err) on failure.
  */
-int picowjs_spi_setup(uint8_t bus, picowjs_spi_mode_t mode, uint32_t baudrate,
-                 picowjs_spi_bitorder_t bitorder, picowjs_spi_pins_t pins,
+int pwjs_spi_setup(uint8_t bus, pwjs_spi_mode_t mode, uint32_t baudrate,
+                 pwjs_spi_bitorder_t bitorder, pwjs_spi_pins_t pins,
                  bool miso_pullup);
 
 /**
@@ -61,7 +82,7 @@ int picowjs_spi_setup(uint8_t bus, picowjs_spi_mode_t mode, uint32_t baudrate,
  * @return the number of bytes read or minus value (err) on timeout or nothing
  * written.
  */
-int picowjs_spi_sendrecv(uint8_t bus, uint8_t *tx_buf, uint8_t *rx_buf, size_t len,
+int pwjs_spi_sendrecv(uint8_t bus, uint8_t *tx_buf, uint8_t *rx_buf, size_t len,
                     uint32_t timeout);
 
 /**
@@ -73,7 +94,7 @@ int picowjs_spi_sendrecv(uint8_t bus, uint8_t *tx_buf, uint8_t *rx_buf, size_t l
  * @param timeout
  * @return the number of bytes written or -1 on timeout or nothing written.
  */
-int picowjs_spi_send(uint8_t bus, uint8_t *buf, size_t len, uint32_t timeout);
+int pwjs_spi_send(uint8_t bus, uint8_t *buf, size_t len, uint32_t timeout);
 
 /**
  * Receive data from the SPI bus and store them into a given buffer.
@@ -85,7 +106,7 @@ int picowjs_spi_send(uint8_t bus, uint8_t *buf, size_t len, uint32_t timeout);
  * @param {uint32_t} timeout
  * @return {int} the number of bytes read
  */
-int picowjs_spi_recv(uint8_t bus, uint8_t send_byte, uint8_t *buf, size_t len,
+int pwjs_spi_recv(uint8_t bus, uint8_t send_byte, uint8_t *buf, size_t len,
                 uint32_t timeout);
 
 /**
@@ -95,11 +116,11 @@ int picowjs_spi_recv(uint8_t bus, uint8_t send_byte, uint8_t *buf, size_t len,
  * @param baudrate Baud rate.
  * @return int Returns 0 on success or minus value (err) on failure.
  */
-int picowjs_set_spi_baudrate(uint8_t bus, uint32_t baudrate);
+int pwjs_set_spi_baudrate(uint8_t bus, uint32_t baudrate);
 
 /**
  * Close the SPI bus
  */
-int picowjs_spi_close(uint8_t bus);
+int pwjs_spi_close(uint8_t bus);
 
-#endif /* __PICOWJS_SPI_H */
+#endif /* __PWJS_SPI_H */

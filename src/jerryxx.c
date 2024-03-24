@@ -1,3 +1,24 @@
+/* Copyright (c) 2024 Pico-W-JS
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 #include "jerryxx.h"
 
 #include <stdio.h>
@@ -130,7 +151,7 @@ void jerryxx_print_value(jerry_value_t value) {
   jerry_size_t str_sz = jerry_get_string_size(str);
   jerry_char_t str_buf[str_sz + 1];
   jerry_string_to_char_buffer(str, str_buf, str_sz);
-  for (int16_t i = 0; i < str_sz; i++) picowjs_tty_putc(str_buf[i]);
+  for (int16_t i = 0; i < str_sz; i++) pwjs_tty_putc(str_buf[i]);
   jerry_release_value(str);
 }
 
@@ -141,10 +162,10 @@ void jerryxx_print_error(jerry_value_t value, bool print_stacktrace) {
   jerry_value_t error_value = jerry_get_value_from_error(value, false);
   // print error message
   jerry_value_t err_str = jerry_value_to_string(error_value);
-  picowjs_repl_set_output(PICOWJS_REPL_OUTPUT_ERROR);
-  picowjs_repl_print_value(err_str);
-  picowjs_repl_println();
-  picowjs_repl_set_output(PICOWJS_REPL_OUTPUT_NORMAL);
+  pwjs_repl_set_output(PWJS_REPL_OUTPUT_ERROR);
+  pwjs_repl_print_value(err_str);
+  pwjs_repl_println();
+  pwjs_repl_set_output(PWJS_REPL_OUTPUT_NORMAL);
   jerry_release_value(err_str);
   // print stack trace
   if (print_stacktrace && jerry_value_is_object(error_value)) {
@@ -162,11 +183,11 @@ void jerryxx_print_error(jerry_value_t value, bool print_stacktrace) {
         jerry_value_t item_val = jerry_get_property_by_index(backtrace_val, i);
         if (!jerry_value_is_error(item_val) &&
             jerry_value_is_string(item_val)) {
-          picowjs_repl_set_output(PICOWJS_REPL_OUTPUT_ERROR);
-          picowjs_repl_printf("  at ");
-          picowjs_repl_print_value(item_val);
-          picowjs_repl_println();
-          picowjs_repl_set_output(PICOWJS_REPL_OUTPUT_NORMAL);
+          pwjs_repl_set_output(PWJS_REPL_OUTPUT_ERROR);
+          pwjs_repl_printf("  at ");
+          pwjs_repl_print_value(item_val);
+          pwjs_repl_println();
+          pwjs_repl_set_output(PWJS_REPL_OUTPUT_NORMAL);
         }
         jerry_release_value(item_val);
       }

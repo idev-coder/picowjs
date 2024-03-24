@@ -2034,9 +2034,9 @@ typedef struct
 #define CAN_BTR_SJW            CAN_BTR_SJW_Msk                                 /*!<Resynchronization Jump Width */
 #define CAN_BTR_SJW_0          (0x1U << CAN_BTR_SJW_Pos)                       /*!< 0x01000000 */
 #define CAN_BTR_SJW_1          (0x2U << CAN_BTR_SJW_Pos)                       /*!< 0x02000000 */
-#define CAN_BTR_LBKM_Pos       (30U)                                           
-#define CAN_BTR_LBKM_Msk       (0x1U << CAN_BTR_LBKM_Pos)                      /*!< 0x40000000 */
-#define CAN_BTR_LBKM           CAN_BTR_LBKM_Msk                                /*!<Loop Back Mode (Debug) */
+#define CAN_BTR_LBPWJS_Pos       (30U)                                           
+#define CAN_BTR_LBPWJS_Msk       (0x1U << CAN_BTR_LBPWJS_Pos)                      /*!< 0x40000000 */
+#define CAN_BTR_LBKM           CAN_BTR_LBPWJS_Msk                                /*!<Loop Back Mode (Debug) */
 #define CAN_BTR_SILM_Pos       (31U)                                           
 #define CAN_BTR_SILM_Msk       (0x1U << CAN_BTR_SILM_Pos)                      /*!< 0x80000000 */
 #define CAN_BTR_SILM           CAN_BTR_SILM_Msk                                /*!<Silent Mode */
@@ -14607,9 +14607,9 @@ typedef struct
 #define USB_OTG_DIEPEACHMSK1_BIM_Pos             (9U)                          
 #define USB_OTG_DIEPEACHMSK1_BIM_Msk             (0x1U << USB_OTG_DIEPEACHMSK1_BIM_Pos) /*!< 0x00000200 */
 #define USB_OTG_DIEPEACHMSK1_BIM                 USB_OTG_DIEPEACHMSK1_BIM_Msk  /*!< BNA interrupt mask                                */
-#define USB_OTG_DIEPEACHMSK1_NAKM_Pos            (13U)                         
-#define USB_OTG_DIEPEACHMSK1_NAKM_Msk            (0x1U << USB_OTG_DIEPEACHMSK1_NAKM_Pos) /*!< 0x00002000 */
-#define USB_OTG_DIEPEACHMSK1_NAKM                USB_OTG_DIEPEACHMSK1_NAKM_Msk /*!< NAK interrupt mask                                */
+#define USB_OTG_DIEPEACHMSK1_NAPWJS_Pos            (13U)                         
+#define USB_OTG_DIEPEACHMSK1_NAPWJS_Msk            (0x1U << USB_OTG_DIEPEACHMSK1_NAPWJS_Pos) /*!< 0x00002000 */
+#define USB_OTG_DIEPEACHMSK1_NAKM                USB_OTG_DIEPEACHMSK1_NAPWJS_Msk /*!< NAK interrupt mask                                */
 
 /********************  Bit definition for USB_OTG_HPRT register  ********************/
 #define USB_OTG_HPRT_PCSTS_Pos                   (0U)                          
@@ -14691,9 +14691,9 @@ typedef struct
 #define USB_OTG_DOEPEACHMSK1_BERRM_Pos           (12U)                         
 #define USB_OTG_DOEPEACHMSK1_BERRM_Msk           (0x1U << USB_OTG_DOEPEACHMSK1_BERRM_Pos) /*!< 0x00001000 */
 #define USB_OTG_DOEPEACHMSK1_BERRM               USB_OTG_DOEPEACHMSK1_BERRM_Msk /*!< Bubble error interrupt mask               */
-#define USB_OTG_DOEPEACHMSK1_NAKM_Pos            (13U)                         
-#define USB_OTG_DOEPEACHMSK1_NAKM_Msk            (0x1U << USB_OTG_DOEPEACHMSK1_NAKM_Pos) /*!< 0x00002000 */
-#define USB_OTG_DOEPEACHMSK1_NAKM                USB_OTG_DOEPEACHMSK1_NAKM_Msk /*!< NAK interrupt mask                        */
+#define USB_OTG_DOEPEACHMSK1_NAPWJS_Pos            (13U)                         
+#define USB_OTG_DOEPEACHMSK1_NAPWJS_Msk            (0x1U << USB_OTG_DOEPEACHMSK1_NAPWJS_Pos) /*!< 0x00002000 */
+#define USB_OTG_DOEPEACHMSK1_NAKM                USB_OTG_DOEPEACHMSK1_NAPWJS_Msk /*!< NAK interrupt mask                        */
 #define USB_OTG_DOEPEACHMSK1_NYETM_Pos           (14U)                         
 #define USB_OTG_DOEPEACHMSK1_NYETM_Msk           (0x1U << USB_OTG_DOEPEACHMSK1_NYETM_Pos) /*!< 0x00004000 */
 #define USB_OTG_DOEPEACHMSK1_NYETM               USB_OTG_DOEPEACHMSK1_NYETM_Msk /*!< NYET interrupt mask                       */
@@ -14925,12 +14925,12 @@ typedef struct
 #define USB_OTG_HCINTMSK_STALLM_Pos              (3U)                          
 #define USB_OTG_HCINTMSK_STALLM_Msk              (0x1U << USB_OTG_HCINTMSK_STALLM_Pos) /*!< 0x00000008 */
 #define USB_OTG_HCINTMSK_STALLM                  USB_OTG_HCINTMSK_STALLM_Msk   /*!< STALL response received interrupt mask */
-#define USB_OTG_HCINTMSK_NAKM_Pos                (4U)                          
-#define USB_OTG_HCINTMSK_NAKM_Msk                (0x1U << USB_OTG_HCINTMSK_NAKM_Pos) /*!< 0x00000010 */
-#define USB_OTG_HCINTMSK_NAKM                    USB_OTG_HCINTMSK_NAKM_Msk     /*!< NAK response received interrupt mask */
-#define USB_OTG_HCINTMSK_ACKM_Pos                (5U)                          
-#define USB_OTG_HCINTMSK_ACKM_Msk                (0x1U << USB_OTG_HCINTMSK_ACKM_Pos) /*!< 0x00000020 */
-#define USB_OTG_HCINTMSK_ACKM                    USB_OTG_HCINTMSK_ACKM_Msk     /*!< ACK response received/transmitted interrupt mask */
+#define USB_OTG_HCINTMSK_NAPWJS_Pos                (4U)                          
+#define USB_OTG_HCINTMSK_NAPWJS_Msk                (0x1U << USB_OTG_HCINTMSK_NAPWJS_Pos) /*!< 0x00000010 */
+#define USB_OTG_HCINTMSK_NAKM                    USB_OTG_HCINTMSK_NAPWJS_Msk     /*!< NAK response received interrupt mask */
+#define USB_OTG_HCINTMSK_ACPWJS_Pos                (5U)                          
+#define USB_OTG_HCINTMSK_ACPWJS_Msk                (0x1U << USB_OTG_HCINTMSK_ACPWJS_Pos) /*!< 0x00000020 */
+#define USB_OTG_HCINTMSK_ACKM                    USB_OTG_HCINTMSK_ACPWJS_Msk     /*!< ACK response received/transmitted interrupt mask */
 #define USB_OTG_HCINTMSK_NYET_Pos                (6U)                          
 #define USB_OTG_HCINTMSK_NYET_Msk                (0x1U << USB_OTG_HCINTMSK_NYET_Pos) /*!< 0x00000040 */
 #define USB_OTG_HCINTMSK_NYET                    USB_OTG_HCINTMSK_NYET_Msk     /*!< response received interrupt mask */

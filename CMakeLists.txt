@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.5)
 
-# default target: raspberry_pi
+# default target: rp2
 if(NOT TARGET)
-  set(TARGET "raspberry_pi")
+  set(TARGET "rp2")
 endif()
 
-if(NOT "${TARGET}" STREQUAL "raspberry_pi")
+if(NOT "${TARGET}" STREQUAL "rp2")
   project(PICOWJS_CMAKE NONE)
 endif()
 

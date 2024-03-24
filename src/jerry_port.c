@@ -1,3 +1,24 @@
+/* Copyright (c) 2024 Pico-W-JS
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,7 +49,7 @@ void jerry_port_log(jerry_log_level_t level, /**< log level */
   va_list args;
   va_start(args, format);
   vsnprintf(buf, 256, format, args);
-  picowjs_tty_printf("%s\r", buf);
+  pwjs_tty_printf("%s\r", buf);
   va_end(args);
 } /* jerry_port_log */
 
@@ -39,7 +60,7 @@ double jerry_port_get_local_time_zone_adjustment(double unix_ms, bool is_utc) {
 /**
  * function to get the current time.
  */
-double jerry_port_get_current_time(void) { return (double)picowjs_rtc_get_time(); }
+double jerry_port_get_current_time(void) { return (double)pwjs_rtc_get_time(); }
 
 /**
  * Opens file with the given path and reads its source.
@@ -82,7 +103,7 @@ void jerry_port_release_source(uint8_t *buffer_p) /**< buffer to free */
  * Uses 'printf' to print a single character to standard output.
  */
 void jerryx_port_handler_print_char(char c) { /**< the character to print */
-  picowjs_tty_putc(c);
+  pwjs_tty_putc(c);
 } /* jerryx_port_handler_print_char */
 
 /**

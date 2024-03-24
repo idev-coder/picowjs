@@ -1,3 +1,24 @@
+/* Copyright (c) 2024 Pico-W-JS
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 #include "global.h"
 
 #include <stdlib.h>
@@ -12,8 +33,8 @@
 #include "jerryscript-ext/handler.h"
 #include "jerryscript.h"
 #include "jerryxx.h"
-#include "kaluma_config.h"
-#include "kaluma_modules.h"
+#include "picowjs_config.h"
+#include "picowjs_modules.h"
 #include "magic_strings.h"
 #include "pwm.h"
 #include "repl.h"
@@ -41,11 +62,11 @@ JERRYXX_FUN(pin_mode_fn) {
   JERRYXX_CHECK_ARG(0, "pin");
   JERRYXX_CHECK_ARG_NUMBER_OPT(1, "mode");
   jerry_value_t pin = JERRYXX_GET_ARG(0);
-  picowjs_gpio_io_mode_t mode =
-      (picowjs_gpio_io_mode_t)JERRYXX_GET_ARG_NUMBER_OPT(1, PICOWJS_GPIO_IO_MODE_INPUT);
+  pwjs_gpio_io_mode_t mode =
+      (pwjs_gpio_io_mode_t)JERRYXX_GET_ARG_NUMBER_OPT(1, PWJS_GPIO_IO_MODE_INPUT);
   if (jerry_value_is_number(pin)) {
     uint8_t pin_num = jerry_get_number_value(pin);
-    int ret = picowjs_gpio_set_io_mode(pin_num, mode);
+    int ret = pwjs_gpio_set_io_mode(pin_num, mode);
     if (ret < 0) {
       return jerry_create_error_from_value(create_system_error(ret), true);
     }
@@ -55,7 +76,7 @@ JERRYXX_FUN(pin_mode_fn) {
       jerry_value_t item = jerry_get_property_by_index(pin, i);
       if (jerry_value_is_number(item)) {
         uint8_t p = jerry_get_number_value(item);
-        int ret = picowjs_gpio_set_io_mode(p, mode);
+        int ret = pwjs_gpio_set_io_mode(p, mode);
         if (ret < 0) {
           return jerry_create_error_from_value(create_system_error(ret), true);
         }
@@ -78,7 +99,7 @@ JERRYXX_FUN(pin_mode_fn) {
 JERRYXX_FUN(digital_read_fn) {
   JERRYXX_CHECK_ARG_NUMBER(0, "pin");
   uint8_t pin = (uint8_t)JERRYXX_GET_ARG_NUMBER(0);
-  int value = picowjs_gpio_read(pin);
+  int value = pwjs_gpio_read(pin);
   if (value < 0) {
     return jerry_create_error_from_value(create_system_error(value), true);
   }
@@ -89,10 +110,10 @@ JERRYXX_FUN(digital_write_fn) {
   JERRYXX_CHECK_ARG(0, "pin");
   JERRYXX_CHECK_ARG_NUMBER_OPT(1, "value");
   jerry_value_t pin = JERRYXX_GET_ARG(0);
-  uint32_t value = (uint32_t)JERRYXX_GET_ARG_NUMBER_OPT(1, PICOWJS_GPIO_LOW);
+  uint32_t value = (uint32_t)JERRYXX_GET_ARG_NUMBER_OPT(1, PWJS_GPIO_LOW);
   if (jerry_value_is_number(pin)) {
     uint8_t pin_num = jerry_get_number_value(pin);
-    int ret = picowjs_gpio_write(pin_num, value);
+    int ret = pwjs_gpio_write(pin_num, value);
     if (ret < 0) {
       return jerry_create_error_from_value(create_system_error(ret), true);
     }
@@ -103,7 +124,7 @@ JERRYXX_FUN(digital_write_fn) {
       if (jerry_value_is_number(item)) {
         uint8_t p = jerry_get_number_value(item);
         uint32_t v = ((value >> i) & 0x01);
-        int ret = picowjs_gpio_write(p, v);
+        int ret = pwjs_gpio_write(p, v);
         if (ret < 0) {
           return jerry_create_error_from_value(create_system_error(ret), true);
         }
@@ -126,7 +147,7 @@ JERRYXX_FUN(digital_write_fn) {
 JERRYXX_FUN(digital_toggle_fn) {
   JERRYXX_CHECK_ARG_NUMBER(0, "pin");
   uint8_t pin = (uint8_t)JERRYXX_GET_ARG_NUMBER(0);
-  int ret = picowjs_gpio_toggle(pin);
+  int ret = pwjs_gpio_toggle(pin);
   if (ret < 0) {
     return jerry_create_error_from_value(create_system_error(ret), true);
   }
@@ -138,11 +159,11 @@ JERRYXX_FUN(digital_toggle_fn) {
  */
 uint8_t check_timeout(uint32_t start, uint32_t timeout) {
   uint32_t tout, now;
-  now = picowjs_micro_gettime();
+  now = pwjs_micro_gettime();
   if (now >= start)
     tout = now - start;
   else
-    tout = (picowjs_micro_maxtime() - start) + now;
+    tout = (pwjs_micro_maxtime() - start) + now;
   if (tout > timeout) return 1;
   return 0;
 }
@@ -155,23 +176,23 @@ static int pulse_read(uint8_t pin, uint8_t state, uint32_t *arr, size_t length,
   size_t cnt = 0;
   uint32_t start, last, now;
   int pin_state;
-  int pre_pin_state = picowjs_gpio_read(pin);
-  start = picowjs_micro_gettime();
+  int pre_pin_state = pwjs_gpio_read(pin);
+  start = pwjs_micro_gettime();
   while ((state < 255) && (pre_pin_state != state)) {
     if (check_timeout(start, timeout)) return 0;
-    pre_pin_state = picowjs_gpio_read(pin);
+    pre_pin_state = pwjs_gpio_read(pin);
   }
-  start = picowjs_micro_gettime();
+  start = pwjs_micro_gettime();
   last = start;
   do {
-    pin_state = picowjs_gpio_read(pin);
-    now = picowjs_micro_gettime();
+    pin_state = pwjs_gpio_read(pin);
+    now = pwjs_micro_gettime();
     if (pin_state != pre_pin_state) {
       pre_pin_state = pin_state;
       if (now >= last)
         arr[cnt++] = now - last;
       else
-        arr[cnt++] = (picowjs_micro_maxtime() - last) + now;
+        arr[cnt++] = (pwjs_micro_maxtime() - last) + now;
       last = now;
     } else {
       if (check_timeout(start, timeout)) return cnt;
@@ -186,12 +207,12 @@ static int pulse_read(uint8_t pin, uint8_t state, uint32_t *arr, size_t length,
 static int pulse_write(uint8_t pin, uint8_t state, uint32_t *arr,
                        size_t length) {
   uint32_t delay;
-  int pin_state = (state == PICOWJS_GPIO_LOW) ? PICOWJS_GPIO_LOW : PICOWJS_GPIO_HIGH;
-  picowjs_gpio_write(pin, pin_state);
+  int pin_state = (state == PWJS_GPIO_LOW) ? PWJS_GPIO_LOW : PWJS_GPIO_HIGH;
+  pwjs_gpio_write(pin, pin_state);
   for (int i = 0; i < length; i++) {
     delay = arr[i];
-    picowjs_micro_delay(delay);
-    picowjs_gpio_toggle(pin);
+    pwjs_micro_delay(delay);
+    pwjs_gpio_toggle(pin);
   }
   return 0;
 }
@@ -247,12 +268,12 @@ JERRYXX_FUN(pulse_read_fn) {
 
   // triggering
   if (trigger_pin < 255) {
-    picowjs_gpio_set_io_mode(trigger_pin, PICOWJS_GPIO_IO_MODE_OUTPUT);
+    pwjs_gpio_set_io_mode(trigger_pin, PWJS_GPIO_IO_MODE_OUTPUT);
     pulse_write(trigger_pin, trigger_start_state, trigger_buf, trigger_len);
   }
 
   // set initial mode
-  if (mode < 255) picowjs_gpio_set_io_mode(pin, mode);
+  if (mode < 255) pwjs_gpio_set_io_mode(pin, mode);
 
   // read pulse
   count = pulse_read(pin, state, buf, count, timeout);
@@ -309,9 +330,9 @@ JERRYXX_FUN(pulse_write_fn) {
   return jerry_create_number(length);
 }
 
-static void watch_close_cb(picowjs_io_handle_t *handle) { free(handle); }
+static void watch_close_cb(pwjs_io_handle_t *handle) { free(handle); }
 
-static void set_watch_cb(picowjs_io_watch_handle_t *watch) {
+static void set_watch_cb(pwjs_io_watch_handle_t *watch) {
   if (jerry_value_is_function(watch->watch_js_cb)) {
     jerry_value_t this_val = jerry_create_undefined();
     jerry_value_t pin = jerry_create_number(watch->pin);
@@ -323,8 +344,8 @@ static void set_watch_cb(picowjs_io_watch_handle_t *watch) {
       jerryxx_print_error(ret_val, true);
       // clear handle
       jerry_release_value(watch->watch_js_cb);
-      picowjs_io_watch_stop(watch);
-      picowjs_io_handle_close((picowjs_io_handle_t *)watch, watch_close_cb);
+      pwjs_io_watch_stop(watch);
+      pwjs_io_handle_close((pwjs_io_handle_t *)watch, watch_close_cb);
     }
     jerry_release_value(ret_val);
     jerry_release_value(pin);
@@ -339,50 +360,50 @@ JERRYXX_FUN(set_watch_fn) {
   JERRYXX_CHECK_ARG_NUMBER_OPT(3, "debounce");
   jerry_value_t callback = JERRYXX_GET_ARG(0);
   uint8_t pin = (uint8_t)JERRYXX_GET_ARG_NUMBER(1);
-  picowjs_io_watch_mode_t events =
-      JERRYXX_GET_ARG_NUMBER_OPT(2, PICOWJS_IO_WATCH_MODE_CHANGE);
+  pwjs_io_watch_mode_t events =
+      JERRYXX_GET_ARG_NUMBER_OPT(2, PWJS_IO_WATCH_MODE_CHANGE);
   uint32_t debounce = JERRYXX_GET_ARG_NUMBER_OPT(3, 0);
-  picowjs_io_watch_handle_t *watch = malloc(sizeof(picowjs_io_watch_handle_t));
-  picowjs_io_watch_init(watch);
+  pwjs_io_watch_handle_t *watch = malloc(sizeof(pwjs_io_watch_handle_t));
+  pwjs_io_watch_init(watch);
   watch->watch_js_cb = jerry_acquire_value(callback);
-  picowjs_io_watch_start(watch, set_watch_cb, pin, events, debounce);
+  pwjs_io_watch_start(watch, set_watch_cb, pin, events, debounce);
   return jerry_create_number(watch->base.id);
 }
 
 JERRYXX_FUN(clear_watch_fn) {
   JERRYXX_CHECK_ARG_NUMBER_OPT(0, "id");
   int id = (int)JERRYXX_GET_ARG_NUMBER_OPT(0, 0);
-  picowjs_io_watch_handle_t *watch = picowjs_io_watch_get_by_id(id);
+  pwjs_io_watch_handle_t *watch = pwjs_io_watch_get_by_id(id);
   if (watch != NULL) {
     jerry_release_value(watch->watch_js_cb);
-    picowjs_io_watch_stop(watch);
-    picowjs_io_handle_close((picowjs_io_handle_t *)watch, watch_close_cb);
+    pwjs_io_watch_stop(watch);
+    pwjs_io_handle_close((pwjs_io_handle_t *)watch, watch_close_cb);
   }
   return jerry_create_undefined();
 }
 
 static void register_global_digital_io() {
   jerry_value_t global = jerry_get_global_object();
-  jerryxx_set_property_number(global, MSTR_HIGH, PICOWJS_GPIO_HIGH);
-  jerryxx_set_property_number(global, MSTR_LOW, PICOWJS_GPIO_LOW);
+  jerryxx_set_property_number(global, MSTR_HIGH, PWJS_GPIO_HIGH);
+  jerryxx_set_property_number(global, MSTR_LOW, PWJS_GPIO_LOW);
   jerryxx_set_property_number(global, MSTR_INPUT,
-                              (double)PICOWJS_GPIO_IO_MODE_INPUT);
+                              (double)PWJS_GPIO_IO_MODE_INPUT);
   jerryxx_set_property_number(global, MSTR_OUTPUT,
-                              (double)PICOWJS_GPIO_IO_MODE_OUTPUT);
+                              (double)PWJS_GPIO_IO_MODE_OUTPUT);
   jerryxx_set_property_number(global, MSTR_INPUT_PULLUP,
-                              (double)PICOWJS_GPIO_IO_MODE_INPUT_PULLUP);
+                              (double)PWJS_GPIO_IO_MODE_INPUT_PULLUP);
   jerryxx_set_property_number(global, MSTR_INPUT_PULLDOWN,
-                              (double)PICOWJS_GPIO_IO_MODE_INPUT_PULLDOWN);
+                              (double)PWJS_GPIO_IO_MODE_INPUT_PULLDOWN);
   jerryxx_set_property_number(global, MSTR_LOW_LEVEL,
-                              (double)PICOWJS_IO_WATCH_MODE_LOW_LEVEL);
+                              (double)PWJS_IO_WATCH_MODE_LOW_LEVEL);
   jerryxx_set_property_number(global, MSTR_HIGH_LEVEL,
-                              (double)PICOWJS_IO_WATCH_MODE_HIGH_LEVEL);
+                              (double)PWJS_IO_WATCH_MODE_HIGH_LEVEL);
   jerryxx_set_property_number(global, MSTR_RISING,
-                              (double)PICOWJS_IO_WATCH_MODE_RISING);
+                              (double)PWJS_IO_WATCH_MODE_RISING);
   jerryxx_set_property_number(global, MSTR_FALLING,
-                              (double)PICOWJS_IO_WATCH_MODE_FALLING);
+                              (double)PWJS_IO_WATCH_MODE_FALLING);
   jerryxx_set_property_number(global, MSTR_CHANGE,
-                              (double)PICOWJS_IO_WATCH_MODE_CHANGE);
+                              (double)PWJS_IO_WATCH_MODE_CHANGE);
   jerryxx_set_property_function(global, MSTR_PIN_MODE, pin_mode_fn);
   jerryxx_set_property_function(global, MSTR_DIGITAL_READ, digital_read_fn);
   jerryxx_set_property_function(global, MSTR_DIGITAL_WRITE, digital_write_fn);
@@ -402,7 +423,7 @@ static void register_global_digital_io() {
 
 static jerry_value_t irq_js_cb[GPIO_MAX];
 
-static void irq_cb(uint8_t pin, picowjs_gpio_io_mode_t mode) {
+static void irq_cb(uint8_t pin, pwjs_gpio_io_mode_t mode) {
   jerry_value_t cb = irq_js_cb[pin];
   if (jerry_value_is_function(cb)) {
     jerry_value_t this_val = jerry_create_undefined();
@@ -428,9 +449,9 @@ JERRYXX_FUN(attach_interrupt_fn) {
   JERRYXX_CHECK_ARG_NUMBER_OPT(2, "events");
   uint8_t pin = (uint8_t)JERRYXX_GET_ARG_NUMBER(0);
   jerry_value_t callback = JERRYXX_GET_ARG(1);
-  picowjs_io_watch_mode_t events =
-      JERRYXX_GET_ARG_NUMBER_OPT(2, PICOWJS_IO_WATCH_MODE_CHANGE);
-  if ((events & PICOWJS_IO_WATCH_MODE_CHANGE) == 0) {
+  pwjs_io_watch_mode_t events =
+      JERRYXX_GET_ARG_NUMBER_OPT(2, PWJS_IO_WATCH_MODE_CHANGE);
+  if ((events & PWJS_IO_WATCH_MODE_CHANGE) == 0) {
     char errmsg[255];
     sprintf(errmsg,
             "Only RISING, FALLING and CHANGE can be set for interrupt event.");
@@ -438,9 +459,9 @@ JERRYXX_FUN(attach_interrupt_fn) {
   }
   if (jerry_value_is_function(callback)) {
     irq_js_cb[pin] = jerry_acquire_value(callback);
-    picowjs_gpio_irq_set_callback(irq_cb);
+    pwjs_gpio_irq_set_callback(irq_cb);
   }
-  if (picowjs_gpio_irq_attach(pin, events) < 0) {
+  if (pwjs_gpio_irq_attach(pin, events) < 0) {
     char errmsg[255];
     sprintf(errmsg, "The pin \"%d\" can't be used for GPIO", pin);
     return jerry_create_error(JERRY_ERROR_RANGE, (const jerry_char_t *)errmsg);
@@ -451,26 +472,26 @@ JERRYXX_FUN(attach_interrupt_fn) {
 JERRYXX_FUN(detach_interrupt_fn) {
   JERRYXX_CHECK_ARG_NUMBER(0, "pin");
   uint8_t pin = (uint8_t)JERRYXX_GET_ARG_NUMBER(0);
-  if (picowjs_gpio_irq_detach(pin) < 0) {
+  if (pwjs_gpio_irq_detach(pin) < 0) {
     char errmsg[255];
     sprintf(errmsg, "The pin \"%d\" can't be used for GPIO", pin);
     return jerry_create_error(JERRY_ERROR_RANGE, (const jerry_char_t *)errmsg);
   }
-  picowjs_gpio_irq_detach(pin);
+  pwjs_gpio_irq_detach(pin);
   jerry_release_value(irq_js_cb[pin]);
   irq_js_cb[pin] = 0;
   return jerry_create_undefined();
 }
 
 JERRYXX_FUN(enable_interrupts_fn) {
-  picowjs_gpio_irq_set_callback(irq_cb);
-  picowjs_gpio_irq_enable();
+  pwjs_gpio_irq_set_callback(irq_cb);
+  pwjs_gpio_irq_enable();
   return jerry_create_undefined();
 }
 
 JERRYXX_FUN(disable_interrupts_fn) {
-  picowjs_gpio_irq_set_callback(NULL);
-  picowjs_gpio_irq_disable();
+  pwjs_gpio_irq_set_callback(NULL);
+  pwjs_gpio_irq_disable();
   return jerry_create_undefined();
 }
 
@@ -493,9 +514,9 @@ static void register_global_interrupts() {
 /*                                                                          */
 /****************************************************************************/
 
-static void timer_close_cb(picowjs_io_handle_t *handle) { free(handle); }
+static void timer_close_cb(pwjs_io_handle_t *handle) { free(handle); }
 
-static void set_timer_cb(picowjs_io_timer_handle_t *timer) {
+static void set_timer_cb(pwjs_io_timer_handle_t *timer) {
   if (jerry_value_is_function(timer->timer_js_cb)) {
     jerry_value_t this_val = jerry_create_undefined();
     jerry_value_t ret_val =
@@ -505,13 +526,13 @@ static void set_timer_cb(picowjs_io_timer_handle_t *timer) {
       jerryxx_print_error(ret_val, true);
       // clear handle
       jerry_release_value(timer->timer_js_cb);
-      picowjs_io_timer_stop(timer);
-      picowjs_io_handle_close((picowjs_io_handle_t *)timer, timer_close_cb);
+      pwjs_io_timer_stop(timer);
+      pwjs_io_handle_close((pwjs_io_handle_t *)timer, timer_close_cb);
     } else {
       if (timer->repeat == false) {
         jerry_release_value(timer->timer_js_cb);
-        picowjs_io_timer_stop(timer);
-        picowjs_io_handle_close((picowjs_io_handle_t *)timer, timer_close_cb);
+        pwjs_io_timer_stop(timer);
+        pwjs_io_handle_close((pwjs_io_handle_t *)timer, timer_close_cb);
       }
     }
     jerry_release_value(ret_val);
@@ -524,10 +545,10 @@ JERRYXX_FUN(set_timeout_fn) {
   JERRYXX_CHECK_ARG_NUMBER(1, "delay");
   jerry_value_t callback = JERRYXX_GET_ARG(0);
   uint64_t delay = (uint64_t)JERRYXX_GET_ARG_NUMBER(1);
-  picowjs_io_timer_handle_t *timer = malloc(sizeof(picowjs_io_timer_handle_t));
-  picowjs_io_timer_init(timer);
+  pwjs_io_timer_handle_t *timer = malloc(sizeof(pwjs_io_timer_handle_t));
+  pwjs_io_timer_init(timer);
   timer->timer_js_cb = jerry_acquire_value(callback);
-  picowjs_io_timer_start(timer, set_timer_cb, delay, false);
+  pwjs_io_timer_start(timer, set_timer_cb, delay, false);
   return jerry_create_number(timer->base.id);
 }
 
@@ -536,21 +557,21 @@ JERRYXX_FUN(set_interval_fn) {
   JERRYXX_CHECK_ARG_NUMBER(1, "delay");
   jerry_value_t callback = JERRYXX_GET_ARG(0);
   uint64_t delay = (uint64_t)JERRYXX_GET_ARG_NUMBER(1);
-  picowjs_io_timer_handle_t *timer = malloc(sizeof(picowjs_io_timer_handle_t));
-  picowjs_io_timer_init(timer);
+  pwjs_io_timer_handle_t *timer = malloc(sizeof(pwjs_io_timer_handle_t));
+  pwjs_io_timer_init(timer);
   timer->timer_js_cb = jerry_acquire_value(callback);
-  picowjs_io_timer_start(timer, set_timer_cb, delay, true);
+  pwjs_io_timer_start(timer, set_timer_cb, delay, true);
   return jerry_create_number(timer->base.id);
 }
 
 JERRYXX_FUN(clear_timer_fn) {
   JERRYXX_CHECK_ARG_NUMBER(0, "id");
   int id = (int)JERRYXX_GET_ARG_NUMBER(0);
-  picowjs_io_timer_handle_t *timer = picowjs_io_timer_get_by_id(id);
+  pwjs_io_timer_handle_t *timer = pwjs_io_timer_get_by_id(id);
   if (timer != NULL) {
     jerry_release_value(timer->timer_js_cb);
-    picowjs_io_timer_stop(timer);
-    picowjs_io_handle_close((picowjs_io_handle_t *)timer, timer_close_cb);
+    pwjs_io_timer_stop(timer);
+    pwjs_io_handle_close((pwjs_io_handle_t *)timer, timer_close_cb);
   }
   return jerry_create_undefined();
 }
@@ -558,24 +579,24 @@ JERRYXX_FUN(clear_timer_fn) {
 JERRYXX_FUN(delay_fn) {
   JERRYXX_CHECK_ARG_NUMBER_OPT(0, "msec");
   uint32_t delay_val = (uint32_t)JERRYXX_GET_ARG_NUMBER_OPT(0, 0);
-  picowjs_delay(delay_val);
+  pwjs_delay(delay_val);
   return jerry_create_undefined();
 }
 
 JERRYXX_FUN(millis_fn) {
-  uint64_t msec = picowjs_gettime();
+  uint64_t msec = pwjs_gettime();
   return jerry_create_number(msec);
 }
 
 JERRYXX_FUN(delay_microseconds_fn) {
   JERRYXX_CHECK_ARG_NUMBER_OPT(0, "usec");
   uint32_t delay_val = (uint32_t)JERRYXX_GET_ARG_NUMBER_OPT(0, 0);
-  picowjs_micro_delay(delay_val);
+  pwjs_micro_delay(delay_val);
   return jerry_create_undefined();
 }
 
 JERRYXX_FUN(micros_fn) {
-  uint64_t usec = picowjs_micro_gettime();
+  uint64_t usec = pwjs_micro_gettime();
   return jerry_create_number(usec);
 }
 
@@ -602,12 +623,12 @@ static void register_global_timers() {
 JERRYXX_FUN(analog_read_fn) {
   JERRYXX_CHECK_ARG_NUMBER(0, "pin");
   uint8_t pin = (uint8_t)JERRYXX_GET_ARG_NUMBER(0);
-  int ret = picowjs_adc_setup(pin);
+  int ret = pwjs_adc_setup(pin);
   if (ret < 0) {
     return jerry_create_error_from_value(create_system_error(ret), true);
   }
-  picowjs_delay(1);  // To prevent issue #55
-  double value = picowjs_adc_read((uint8_t)ret);
+  pwjs_delay(1);  // To prevent issue #55
+  double value = pwjs_adc_read((uint8_t)ret);
   return jerry_create_number(value);
 }
 
@@ -617,25 +638,25 @@ JERRYXX_FUN(analog_write_fn) {
   JERRYXX_CHECK_ARG_NUMBER_OPT(2, "frequency");
   uint8_t pin = (uint8_t)JERRYXX_GET_ARG_NUMBER(0);
   double value = JERRYXX_GET_ARG_NUMBER_OPT(1, 0.5);
-  if (value < PICOWJS_PWM_DUTY_MIN)
-    value = PICOWJS_PWM_DUTY_MIN;
-  else if (value > PICOWJS_PWM_DUTY_MAX)
-    value = PICOWJS_PWM_DUTY_MAX;
+  if (value < PWJS_PWM_DUTY_MIN)
+    value = PWJS_PWM_DUTY_MIN;
+  else if (value > PWJS_PWM_DUTY_MAX)
+    value = PWJS_PWM_DUTY_MAX;
   double frequency = JERRYXX_GET_ARG_NUMBER_OPT(2, 490);  // Default 490Hz
-  int ret = picowjs_pwm_setup(pin, frequency, value);
+  int ret = pwjs_pwm_setup(pin, frequency, value);
   if (ret < 0) {
     return jerry_create_error_from_value(create_system_error(ret), true);
   } else {
-    picowjs_pwm_start(pin);
+    pwjs_pwm_start(pin);
     return jerry_create_undefined();
   }
 }
 
-static void tone_timeout_cb(picowjs_io_timer_handle_t *timer) {
+static void tone_timeout_cb(pwjs_io_timer_handle_t *timer) {
   uint8_t pin = timer->tag;
-  picowjs_pwm_stop(pin);
-  picowjs_io_timer_stop(timer);
-  picowjs_io_handle_close((picowjs_io_handle_t *)timer, timer_close_cb);
+  pwjs_pwm_stop(pin);
+  pwjs_io_timer_stop(timer);
+  pwjs_io_handle_close((pwjs_io_handle_t *)timer, timer_close_cb);
 }
 
 JERRYXX_FUN(tone_fn) {
@@ -654,22 +675,22 @@ JERRYXX_FUN(tone_fn) {
     inversion =
         (int8_t)jerryxx_get_property_number(options, MSTR_INVERSION, -1);
   }
-  if ((inversion >= 0) && (picowjs_check_pwm_inv_port(pin, inversion) < 0)) {
+  if ((inversion >= 0) && (pwjs_check_pwm_inv_port(pin, inversion) < 0)) {
     char errmsg[255];
     sprintf(errmsg, "The pin \"%d\" can't be used for tone invert pin",
             inversion);
     return jerry_create_error(JERRY_ERROR_RANGE, (const jerry_char_t *)errmsg);
   }
-  if (duty < PICOWJS_PWM_DUTY_MIN)
-    duty = PICOWJS_PWM_DUTY_MIN;
-  else if (duty > PICOWJS_PWM_DUTY_MAX)
-    duty = PICOWJS_PWM_DUTY_MAX;
-  int ret = picowjs_pwm_setup(pin, frequency, duty);
+  if (duty < PWJS_PWM_DUTY_MIN)
+    duty = PWJS_PWM_DUTY_MIN;
+  else if (duty > PWJS_PWM_DUTY_MAX)
+    duty = PWJS_PWM_DUTY_MAX;
+  int ret = pwjs_pwm_setup(pin, frequency, duty);
   if (ret < 0) {
     return jerry_create_error_from_value(create_system_error(ret), true);
   } else {
     if (inversion >= 0) {
-      if (picowjs_pwm_set_inversion(pin, inversion) < 0) {
+      if (pwjs_pwm_set_inversion(pin, inversion) < 0) {
         char errmsg[255];
         sprintf(errmsg, "The pin \"%d\" can't be used for inversion pin",
                 inversion);
@@ -677,16 +698,16 @@ JERRYXX_FUN(tone_fn) {
                                   (const jerry_char_t *)errmsg);
       }
     }
-    picowjs_pwm_start(pin);
+    pwjs_pwm_start(pin);
     if (inversion >= 0) {
-      picowjs_pwm_start(inversion);
+      pwjs_pwm_start(inversion);
     }
     // setup timer for duration
     if (duration > 0) {
-      picowjs_io_timer_handle_t *timer = malloc(sizeof(picowjs_io_timer_handle_t));
-      picowjs_io_timer_init(timer);
+      pwjs_io_timer_handle_t *timer = malloc(sizeof(pwjs_io_timer_handle_t));
+      pwjs_io_timer_init(timer);
       timer->tag = pin;
-      picowjs_io_timer_start(timer, tone_timeout_cb, duration, false);
+      pwjs_io_timer_start(timer, tone_timeout_cb, duration, false);
     }
     return jerry_create_undefined();
   }
@@ -695,7 +716,7 @@ JERRYXX_FUN(tone_fn) {
 JERRYXX_FUN(no_tone_fn) {
   JERRYXX_CHECK_ARG_NUMBER(0, "pin");
   uint8_t pin = (uint8_t)JERRYXX_GET_ARG_NUMBER(0);
-  int ret = picowjs_pwm_stop(pin);
+  int ret = pwjs_pwm_stop(pin);
   if (ret < 0) {
     return jerry_create_error_from_value(create_system_error(ret), true);
   }
@@ -719,38 +740,38 @@ static void register_global_analog_io() {
 
 JERRYXX_FUN(console_log_fn) {
   if (JERRYXX_GET_ARG_COUNT > 0) {
-    picowjs_repl_printf("\33[2K\r");  // set column to 0
-    picowjs_repl_printf("\33[0m");    // set to normal color
+    pwjs_repl_printf("\33[2K\r");  // set column to 0
+    pwjs_repl_printf("\33[0m");    // set to normal color
     for (int i = 0; i < JERRYXX_GET_ARG_COUNT; i++) {
       if (i > 0) {
-        picowjs_repl_printf(" ");
+        pwjs_repl_printf(" ");
       }
       if (jerry_value_is_string(JERRYXX_GET_ARG(i))) {
-        picowjs_repl_print_value(JERRYXX_GET_ARG(i));
+        pwjs_repl_print_value(JERRYXX_GET_ARG(i));
       } else {
-        picowjs_repl_pretty_print(0, 2, JERRYXX_GET_ARG(i));
+        pwjs_repl_pretty_print(0, 2, JERRYXX_GET_ARG(i));
       }
     }
-    picowjs_repl_println();
+    pwjs_repl_println();
   }
   return jerry_create_undefined();
 }
 
 JERRYXX_FUN(console_error_fn) {
   if (JERRYXX_GET_ARG_COUNT > 0) {
-    picowjs_repl_printf("\33[2K\r");  // set column to 0
-    picowjs_repl_printf("\33[0m");    // set to normal color
+    pwjs_repl_printf("\33[2K\r");  // set column to 0
+    pwjs_repl_printf("\33[0m");    // set to normal color
     for (int i = 0; i < JERRYXX_GET_ARG_COUNT; i++) {
       if (i > 0) {
-        picowjs_repl_printf(" ");
+        pwjs_repl_printf(" ");
       }
       if (jerry_value_is_string(JERRYXX_GET_ARG(i))) {
-        picowjs_repl_print_value(JERRYXX_GET_ARG(i));
+        pwjs_repl_print_value(JERRYXX_GET_ARG(i));
       } else {
-        picowjs_repl_pretty_print(0, 2, JERRYXX_GET_ARG(i));
+        pwjs_repl_pretty_print(0, 2, JERRYXX_GET_ARG(i));
       }
     }
-    picowjs_repl_println();
+    pwjs_repl_println();
   }
   return jerry_create_undefined();
 }
@@ -883,9 +904,9 @@ JERRYXX_FUN(process_stdout_getter_fn) {
 
 static void register_global_process_object() {
   jerry_value_t process = jerry_create_object();
-  jerryxx_set_property_string(process, MSTR_ARCH, KALUMA_SYSTEM_ARCH);
-  jerryxx_set_property_string(process, MSTR_PLATFORM, KALUMA_SYSTEM_PLATFORM);
-  jerryxx_set_property_string(process, MSTR_VERSION, KALUMA_VERSION);
+  jerryxx_set_property_string(process, MSTR_ARCH, PICOWJS_SYSTEM_ARCH);
+  jerryxx_set_property_string(process, MSTR_PLATFORM, PICOWJS_SYSTEM_PLATFORM);
+  jerryxx_set_property_string(process, MSTR_VERSION, PICOWJS_VERSION);
   jerryxx_set_property_function(process, MSTR_MEMORY_USAGE,
                                 process_memory_usage_fn);
 
@@ -1122,13 +1143,13 @@ JERRYXX_FUN(btoa_fn) {
     jerry_value_t array_buffer =
         jerry_get_typedarray_buffer(binary_data, &byteOffset, &byteLength);
     uint8_t *buf = jerry_get_arraybuffer_pointer(array_buffer);
-    encoded_data = picowjs_base64_encode(buf + byteOffset, byteLength, &encoded_data_sz);
+    encoded_data = pwjs_base64_encode(buf + byteOffset, byteLength, &encoded_data_sz);
     jerry_release_value(array_buffer);
   } else if (jerry_value_is_string(binary_data)) { /* for string */
     jerry_size_t len = jerryxx_get_ascii_string_size(binary_data);
     uint8_t buf[len];
     jerryxx_string_to_ascii_char_buffer(binary_data, buf, len);
-    encoded_data = picowjs_base64_encode(buf, len, &encoded_data_sz);
+    encoded_data = pwjs_base64_encode(buf, len, &encoded_data_sz);
   } else {
     return jerry_create_error(JERRY_ERROR_TYPE,
                               (const jerry_char_t *)"Unsupported binary data.");
@@ -1147,7 +1168,7 @@ JERRYXX_FUN(atob_fn) {
   JERRYXX_CHECK_ARG_STRING(0, "encodedData")
   JERRYXX_GET_ARG_STRING_AS_CHAR(0, encoded_data)
   size_t decoded_data_sz;
-  unsigned char *decoded_data = picowjs_base64_decode(
+  unsigned char *decoded_data = pwjs_base64_decode(
       (unsigned char *)encoded_data, encoded_data_sz, &decoded_data_sz);
   if (decoded_data != NULL) {
     jerry_value_t buffer = jerry_create_arraybuffer_external(
@@ -1209,7 +1230,7 @@ JERRYXX_FUN(decode_uri_component_fn) {
   while (i < data_sz) {
     char ch = data[i];
     if (ch == '%') {
-      uint8_t bin = picowjs_hex1(data[i + 1]) << 4 | picowjs_hex1(data[i + 2]);
+      uint8_t bin = pwjs_hex1(data[i + 1]) << 4 | pwjs_hex1(data[i + 2]);
       decoded[p] = bin;
       i += 3;
       p++;
@@ -1278,12 +1299,12 @@ JERRYXX_FUN(print_fn) {
   if (JERRYXX_GET_ARG_COUNT > 0) {
     for (int i = 0; i < JERRYXX_GET_ARG_COUNT; i++) {
       if (i > 0) {
-        picowjs_repl_printf(" ");
+        pwjs_repl_printf(" ");
       }
       if (jerry_value_is_string(JERRYXX_GET_ARG(i))) {
-        picowjs_repl_print_value(JERRYXX_GET_ARG(i));
+        pwjs_repl_print_value(JERRYXX_GET_ARG(i));
       } else {
-        picowjs_repl_pretty_print(0, 2, JERRYXX_GET_ARG(i));
+        pwjs_repl_pretty_print(0, 2, JERRYXX_GET_ARG(i));
       }
     }
   }
@@ -1338,7 +1359,7 @@ static void run_board_module() {
     jerryxx_print_error(ret_val, true);
   }
   jerry_value_t board = jerryxx_get_property(global, MSTR_BOARD);
-  jerryxx_set_property_string(board, MSTR_UID, picowjs_getuid());
+  jerryxx_set_property_string(board, MSTR_UID, pwjs_getuid());
   jerry_release_value(board);
   jerry_release_value(ret_val);
   jerry_release_value(module);
@@ -1349,7 +1370,7 @@ static void run_board_module() {
   jerry_release_value(board_js);
 }
 
-void picowjs_global_init() {
+void pwjs_global_init() {
   register_global_objects();
   register_global_digital_io();
   register_global_interrupts();

@@ -6,14 +6,14 @@
  * See README for more details.
  */
 
-#ifndef __PICOWJS_BASE64_H
-#define __PICOWJS_BASE64_H
+#ifndef __PWJS_BASE64_H
+#define __PWJS_BASE64_H
 
 #include <stdio.h>
 
-unsigned char *picowjs_base64_encode(const unsigned char *src, size_t len,
+unsigned char *pwjs_base64_encode(const unsigned char *src, size_t len,
                                 size_t *out_len);
-unsigned char *picowjs_base64_decode(const unsigned char *src, size_t len,
+unsigned char *pwjs_base64_decode(const unsigned char *src, size_t len,
                                 size_t *out_len);
 
-#endif /* __PICOWJS_BASE64_H */
+#endif /* __PWJS_BASE64_H */
